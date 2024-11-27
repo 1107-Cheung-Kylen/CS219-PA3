@@ -6,20 +6,26 @@ uint32_t convert(string number){
     return converted;
 }
 
+int32_t convertSigned(string number){
+    int32_t converted;
+    converted = stoul(number, nullptr, 16);
+    return converted;
+}
+
 int convertRegister(string stringRegister){
     return stringRegister[1] - 48; // get only number from stringRegister
 }
 
-bool overflow(Register<uint32_t> reg1, Register<uint32_t> reg2){
-    if(reg2.getNumber() > 4294967295 - reg1.getNumber()){ // 4294967295 is maximum value
+bool overflow(uint32_t val1, uint32_t val2){
+    if(val2 > 4294967295 - val1){ // 4294967295 is maximum value
         return true;
     }
     return false;
 }
 
-void setRegisterArray(string stringDestination, string setValueString, Register<uint32_t>* arrayRegisters){
+void setRegisterArray(string stringDestination, uint32_t setValue, Register<uint32_t>* arrayRegisters){
     int destination = convertRegister(stringDestination);
-    uint32_t setValue = convert(setValueString);
+    // uint32_t setValue = convert(setValueString);
     switch(destination){
         case 0:
             arrayRegisters[0].setNumber(setValue);
@@ -48,42 +54,60 @@ void setRegisterArray(string stringDestination, string setValueString, Register<
     }
 }
 
-Register<uint32_t> getRegisterValue(string stringDestination, Register<uint32_t>* arrayRegisters){
+uint32_t getRegisterValue(string stringDestination, Register<uint32_t>* arrayRegisters){
     int destination = convertRegister(stringDestination);
     switch(destination){
         case 0:
-            return arrayRegisters[0];
+            return arrayRegisters[0].getNumber();
         case 1:
-            return arrayRegisters[1];
+            return arrayRegisters[1].getNumber();
         case 2:
-            return arrayRegisters[2];
+            return arrayRegisters[2].getNumber();
         case 3:
-            return arrayRegisters[3];
+            return arrayRegisters[3].getNumber();
         case 4:
-            return arrayRegisters[4];
+            return arrayRegisters[4].getNumber();
         case 5:
-            return arrayRegisters[5];
+            return arrayRegisters[5].getNumber();
         case 6:
-            return arrayRegisters[6];
+            return arrayRegisters[6].getNumber();
         case 7:
-            return arrayRegisters[7];                                                                                    
+            return arrayRegisters[7].getNumber();                                                                                    
     }
 }
 
+// Operator overload error when placed here (linking error?)
+// void displayRegisters(Register<uint32_t>* arrayRegisters){
+//     for(int i = 0; i < 8; i++){
+//         string registerNumber = "R" + to_string(i);
+//         cout << registerNumber << ":" << arrayRegisters[i] << "   "; // USE OPERATOR OVERLOAD TO DISPLAY CORRECT VALUE
+//     }
+//     cout << endl;
+// }
 
-bool negative(Register<uint32_t> checkValue){
+bool negative(uint32_t checkValue){
     // shift RIGHT 31 times to get remaining bit, and check if 1
-    if((checkValue.getNumber()>>31) == 1){
+    if((checkValue>>31) == 1){
         return true;
     }else{
         return false;
     }
 }
 
-bool zero(Register<uint32_t> checkValue){
-    if(checkValue.getNumber() == 0){
+bool zero(uint32_t checkValue){
+    if(checkValue == 0){
         return true;
-        cout << "ZERO" << endl;
     }
     return false;
+}
+
+bool carry(uint32_t val1, uint32_t val2, string operation){
+    if(operation == "ADDS"){
+        // return(val1+ val2);
+        uint32_t result = val1 + val2;
+        return result < val1 || result < val2;
+    }
+    if(operation == "SUBS"){
+        return val2 > val1;
+    }
 }

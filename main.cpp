@@ -4,27 +4,23 @@
 #define READFILE "Programming-Project-3.txt"
 // #define READFILE "test.txt"
 #include <fstream> // needed for file stream
-// #include <cctype>
-#include <string>
-#include <iostream>
+#include <iostream> // includes <string> library
 #include "helpers.h"
+
+// for some reason gave errors in helpers file (related to linking?)
+void displayRegisters(Register<uint32_t>* arrayRegisters);
 
 int main(){
     // open file stream
     ifstream fin(READFILE);
     if(fin.is_open() == true){
         Register<uint32_t> destinationRegister, registerN, registerM;
-        // int destinationRegister, registerN, registerM;
-        // Register<uint32_t> register0, register1, register2, register3, register4, register5, register6, register7; // create registers
         Register <uint32_t> generalRegisters[8];
         string operation, destination, operand1, operand2; // OPCODE, Rd, Rn, Rm
         bool N, Z, C, V; // n - negative, z - zero, c - carry, v - overflow
         while(fin.good() == true){
             string junk;
-            // getline(fin, junk, '\n');
-            // getline(fin, operation, ' ');
             fin >> operation;
-            cout << operation;
 
             // make operation uppercase
             for(int i = 0; i < operation.length(); i++){
@@ -32,151 +28,143 @@ int main(){
             }
             getline(fin, junk, ' ');
             getline(fin, destination, ',');
-            // cout << destination;
 
             // MOV operations
             if(operation == "MOV"){
                 getline(fin, junk, '#'); // remove # from MOV operation
                 getline(fin, operand1, '\r');
-                setRegisterArray(destination, operand1, generalRegisters);
-                destinationRegister = getRegisterValue(destination, generalRegisters);
-                cout << destinationRegister.getNumber() << endl;
+                setRegisterArray(destination, convert(operand1), generalRegisters);
+                cout << operation << " " << destination << ", #" << operand1 << endl;
             }
 
             // Operations with two hex numbers
             if(operation == "ADD" || operation == "ADDS" || operation == "AND" || operation == "ANDS" || operation == "ORR" || operation == "ORRS" || operation == "SUB" || operation == "SUBS" || operation == "XOR" || operation == "XORS"){
+                getline(fin, junk, ' '); // remove space from operand2                
                 getline(fin, operand1, ',');
                 getline(fin, junk, ' '); // remove space from operand2
-                getline(fin, operand2, '\n');
-                registerN.setNumber(convert(operand1));
-                registerM.setNumber(convert(operand2));
+                getline(fin, operand2, '\r');
+
+                // retrieve value from register array set in previous MOV operation
+                uint32_t value1 = getRegisterValue(operand1, generalRegisters);
+                uint32_t value2 = getRegisterValue(operand2, generalRegisters);
+
                 if(operation == "ADD" || operation == "ADDS"){
-                    destinationRegister.setNumber(destinationRegister.getNumber() + registerN.getNumber());
+                    setRegisterArray(destination, value1 + value2, generalRegisters);
+                    uint32_t result = getRegisterValue(destination, generalRegisters);
+                    // prototype for rest of them
                     if(operation == "ADDS"){
-                        N = negative(registerM);
-                        Z = zero(registerM);
+                        N = negative(result);
+                        Z = zero(result);
+                        C = carry(value1, value2, operation);
+                        V = overflow(value1, value2);
                     }
                 }
 
-
-
                 if(operation == "AND" || operation == "ANDS"){
-                    registerM.setNumber(destinationRegister.getNumber() & registerN.getNumber());
+                    setRegisterArray(destination, value1 & value2, generalRegisters);
+                    uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "ANDS"){
-                        N = negative(registerM); // will redo how overflow is calculated
-                        Z = zero(registerM);
+                        // N = negative(registerM); // will redo how overflow is calculated
+                        // Z = zero(registerM);
                     }
                 }
                 if(operation == "ORR" || operation == "ORRS"){
-                    registerM.setNumber(destinationRegister.getNumber() | registerN.getNumber());
+                    setRegisterArray(destination, value1 | value2, generalRegisters);
+                    uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "ORRS"){
-                        N = negative(registerM); // will redo how overflow is calculated
-                        Z = zero(registerM);
+                        // N = negative(registerM); // will redo how overflow is calculated
+                        // Z = zero(registerM);
                     }
                 }
                 if(operation == "SUB" || operation == "SUBS"){
-                    registerM.setNumber(destinationRegister.getNumber() - registerN.getNumber());
+                    setRegisterArray(destination, value1 - value2, generalRegisters);
+                    uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "SUBS"){
-                        N = negative(registerM); // will redo how overflow is calculated
-                        Z = zero(registerM);
+                        // N = negative(registerM); // will redo how overflow is calculated
+                        // Z = zero(registerM);
                     }
                 }
                 if(operation == "XOR" || operation == "XORS"){
-                    registerM.setNumber(destinationRegister.getNumber() ^ registerN.getNumber());
+                    setRegisterArray(destination, value1 ^ value2, generalRegisters);
+                    uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "XORS"){
-                        N = negative(registerM); // will redo how overflow is calculated
-                        Z = zero(registerM);
+                        // N = negative(registerM); // will redo how overflow is calculated
+                        // Z = zero(registerM);
                     }
                 }                
-                cout << operation << " " << destinationRegister << " " << registerN << " : " << registerM << endl;
-                cout << "N: " << N << " Z: " << Z << endl;
+                cout << operation << " " << destination << ", " << operand1 << ", " << operand2 << endl;
             }
 
             // Operation with single hex number
             // ASR -> Arithemetic Shift Right, LSR -> Logical Shift Right, LSL -> Logical Shift Left
             if(operation == "ASR" || operation == "ASRS" || operation == "LSR" || operation == "LSRS" || operation == "LSL" || operation == "LSLS"){
-                fin >> operand1 >> operand2;
-                
-                destinationRegister.setNumber(convert(operand1));
+                getline(fin, junk, ' '); // remove space from operand2                
+                getline(fin, operand1, ',');
+                getline(fin, junk, ' '); // remove space from operand2
+                getline(fin, operand2, '\r');
+
+                int shiftValue = convertRegister(operand2);
+
                 // ASR -> Arithemetic Shift Right (maintains first bit to keep sign)
                 if(operation == "ASR" || operation == "ASRS"){
-                    registerM.setNumber(destinationRegister.getNumber() >> stoi(operand2));
-                    // Shift and insert 1 into MSB
-                    if(negative(destinationRegister)){ // insert 1 into Most Significant bit
-                        int msbShift = 0;
-                        for(int i = 0; i < stoi(operand2); i++){ // Creates bit value for number of 1s to add based off shift
-                            if(i == 0){
-                                msbShift = 1;
-                            }else{
-                                msbShift = msbShift + 10;
-                            }
-                        }
-                        registerM.setNumber(registerM.getNumber() | (msbShift << 32 - stoi(operand2))); // applies shift
-                    }
+                    int32_t value1; // int32_t for ASR only
+                    setRegisterArray(destination, value1 >> shiftValue, generalRegisters);
                     if(operation == "ASRS"){
-                        N = negative(registerM);
-                        Z = zero(registerM);
+                        // set flags
                     }
                 }
+
+                // use uint32_t for the rest
+                uint32_t value1 = getRegisterValue(operand1, generalRegisters);
                 if(operation == "LSR" || operation == "LSRS"){
-                    registerM.setNumber(destinationRegister.getNumber() >> stoi(operand2));
+                    setRegisterArray(destination, value1 >> shiftValue, generalRegisters);
                     if(operation == "LSRS"){
-                        N = negative(registerM);
-                        Z = zero(registerM);
+                        // set flags
                     }
                 }
                 if(operation == "LSL" || operation == "LSLS"){
-                    registerM.setNumber(destinationRegister.getNumber() << stoi(operand2));
+                    setRegisterArray(destination, value1 << shiftValue, generalRegisters);
                     if(operation == "LSLS"){
-                        N = negative(registerM);
-                        Z = zero(registerM);
+                        // set flags
                     }
                 }
-                cout << operation << " " << destinationRegister << " " << operand2 << " : " << registerM << endl;
-                cout << "N: " << N << " Z: " << Z << endl;
+                cout << operation << " " << destination << ", " << operand1 << ", " << operand2 << endl;
             }
 
-            // Operation with only 1 hex value
-            if(operation == "NOT" || operation == "NOTS"){
-                fin >> operand1;
+            // Not needed in PA3
+            // // Operation with only 1 hex value
+            // if(operation == "NOT" || operation == "NOTS"){
+            //     fin >> operand1;
 
-                destinationRegister.setNumber(convert(operand1));
-                registerM.setNumber(~destinationRegister.getNumber());
-                if(operation == "NOTS"){
-                    N = negative(registerM);
-                    Z = zero(registerM);
-                }
+            //     destinationRegister.setNumber(convert(operand1));
+            //     registerM.setNumber(~destinationRegister.getNumber());
+            //     if(operation == "NOTS"){
+            //         // N = negative(registerM);
+            //         // Z = zero(registerM);
+            //     }
 
-                cout << operation << " " << destinationRegister << ": " << registerM << endl;
-                cout << "N: " << N << " Z: " << Z << endl;
-            }
-
-            // move switch statement to end (rn it is not setting anything since destination is still default)
-            // switch(destination[1]){
-            //     case 0:
-            //         register0 = destinationRegister;
-            //     case 1:
-            //         register1 = destinationRegister;
-            //     case 2:
-            //         register2 = destinationRegister;
-            //     case 3:
-            //         register3 = destinationRegister;
-            //     case 4:
-            //         register4 = destinationRegister;
-            //     case 5:
-            //         register5 = destinationRegister;
-            //     case 6:
-            //         register6 = destinationRegister;
-            //     case 7:
-            //         register7 = destinationRegister;
+            //     cout << operation << " " << destinationRegister << ": " << registerM << endl;
+            //     cout << "N: " << N << " Z: " << Z << endl;
             // }
 
+            if(operation == "CMP" || "TST"){
 
+            }
+            displayRegisters(generalRegisters);
+            cout << "N: " << N << " Z: " << Z << " C: "<< C << " V: " << V << endl;
         }
     }else{
         cout << "File not found!" << endl;
     }
 return 0;
+}
+
+void displayRegisters(Register<uint32_t>* arrayRegisters){
+    for(int i = 0; i < 8; i++){
+        string registerNumber = "R" + to_string(i);
+        cout << registerNumber << ":" << arrayRegisters[i] << "   "; // USE OPERATOR OVERLOAD TO DISPLAY CORRECT VALUE
+    }
+    cout << endl;
 }
 
 template <class T>
