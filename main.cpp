@@ -40,7 +40,7 @@ int main(){
                 cout << operation << " " << destination << ", #" << operand1 << endl;
             }
 
-            // Operations with two hex numbers
+            // Operations with destination and two registers
             if(operation == "ADD" || operation == "ADDS" || operation == "AND" || operation == "ANDS" || operation == "ORR" || operation == "ORRS" || operation == "SUB" || operation == "SUBS" || operation == "XOR" || operation == "XORS"){
                 getline(fin, junk, ' ');
                 getline(fin, destination, ',');                
@@ -103,7 +103,7 @@ int main(){
                 cout << operation << " " << destination << ", " << operand1 << ", " << operand2 << endl;
             }
 
-            // Operation with single hex number
+            // Operation with destination, register, and numerical value
             // ASR -> Arithemetic Shift Right, LSR -> Logical Shift Right, LSL -> Logical Shift Left
             if(operation == "ASR" || operation == "ASRS" || operation == "LSR" || operation == "LSRS" || operation == "LSL" || operation == "LSLS"){
                 getline(fin, junk, ' ');
@@ -117,16 +117,7 @@ int main(){
                 int shiftValue = convertRegister(operand2);
 
                 // ASR -> Arithemetic Shift Right (maintains first bit to keep sign)
-                if(operation == "ASR" || operation == "ASRS"){
-                    int32_t value1; // int32_t for ASR only
-                    setRegisterArray(destination, value1 >> shiftValue, generalRegisters);
-                    uint32_t result = getRegisterValue(destination, generalRegisters);
-                    if(operation == "ASRS"){
-                        N = negative(result);
-                        Z = zero(result);
-                        C = carryShift(value1, shiftValue, operation);
-                    }
-                }
+                // use int32_t for ASR
 
                 // use uint32_t for the rest
                 uint32_t value1 = getRegisterValue(operand1, generalRegisters);
@@ -151,22 +142,9 @@ int main(){
                 cout << operation << " " << destination << ", " << operand1 << ", " << operand2 << endl;
             }
 
-            // Not needed in PA3
-            // // Operation with only 1 hex value
-            // if(operation == "NOT" || operation == "NOTS"){
-            //     fin >> operand1;
+            // NOT & NOTS
 
-            //     destinationRegister.setNumber(convert(operand1));
-            //     registerM.setNumber(~destinationRegister.getNumber());
-            //     if(operation == "NOTS"){
-            //         // N = negative(registerM);
-            //         // Z = zero(registerM);
-            //     }
-
-            //     cout << operation << " " << destinationRegister << ": " << registerM << endl;
-            //     cout << "N: " << N << " Z: " << Z << endl;
-            // }
-
+            // Operation with no destination register
             if(operation == "CMP" || operation == "TST"){
                 // NO DESTINATION REGISTERS
                 
@@ -180,8 +158,14 @@ int main(){
                 uint32_t value2 = getRegisterValue(operand2, generalRegisters);
 
                 if(operation == "CMP"){
+                    // for CMP, if second operand is larger than first, then negative is set
                     uint32_t result = value2 - value1;
-                    N = negative(result);
+                    // if(value2 > value1){
+                    //     N = true;
+                    // }else{
+                    //     N = false;
+                    // }
+                    N = (value2 > value1);
                     Z = zero(result);
                     C = carry(value1, value2, operation);
                     V = overflow(value1, value2, operation);

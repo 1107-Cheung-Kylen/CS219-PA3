@@ -81,11 +81,12 @@ uint32_t getRegisterValue(string stringDestination, Register<uint32_t>* arrayReg
 // N
 bool negative(uint32_t checkValue){
     // shift RIGHT 31 times to get remaining bit, and check if 1
-    if((checkValue >> 31) == 1){
-        return true;
-    }else{
-        return false;
-    }
+    // if((checkValue >> 31) == 1){
+    //     return true;
+    // }else{
+    //     return false;
+    // }
+    return checkValue >> 31;
 }
 
 // Z
