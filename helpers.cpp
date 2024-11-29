@@ -16,13 +16,6 @@ int convertRegister(string stringRegister){
     return stringRegister[1] - 48; // get only number from stringRegister
 }
 
-bool overflow(uint32_t val1, uint32_t val2){
-    if(val2 > 4294967295 - val1){ // 4294967295 is maximum value
-        return true;
-    }
-    return false;
-}
-
 void setRegisterArray(string stringDestination, uint32_t setValue, Register<uint32_t>* arrayRegisters){
     int destination = convertRegister(stringDestination);
     // uint32_t setValue = convert(setValueString);
@@ -85,15 +78,17 @@ uint32_t getRegisterValue(string stringDestination, Register<uint32_t>* arrayReg
 //     cout << endl;
 // }
 
+// N
 bool negative(uint32_t checkValue){
     // shift RIGHT 31 times to get remaining bit, and check if 1
-    if((checkValue>>31) == 1){
+    if((checkValue >> 31) == 1){
         return true;
     }else{
         return false;
     }
 }
 
+// Z
 bool zero(uint32_t checkValue){
     if(checkValue == 0){
         return true;
@@ -101,13 +96,59 @@ bool zero(uint32_t checkValue){
     return false;
 }
 
+// C
 bool carry(uint32_t val1, uint32_t val2, string operation){
     if(operation == "ADDS"){
-        // return(val1+ val2);
-        uint32_t result = val1 + val2;
-        return result < val1 || result < val2;
+        if(val1 + val2 < val1 || val1 + val2 < val2){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    if(operation == "SUBS" || operation == "CMP"){ // CMP is same as SUB without setting register
+        uint32_t result = val1 - val2;
+        if(result < val1){
+            return true;
+        }
+        return false;
+    }
+}
+
+bool carryShift(uint32_t val1, int shiftNum, string operation){
+    uint32_t checkValue;
+    if(operation == "LSRS"){
+        checkValue = val1 >> (shiftNum - 1); // subtract 1 to check front bit (number that is getting shifted out)
+        checkValue = checkValue & 1; // mask with 1 to check if right bit is 1 
+        return checkValue;
+    }
+    if(operation == "LSLS"){
+        checkValue = val1 << (shiftNum - 1);
+        checkValue = checkValue & 2147483648; // mask with 2147483648 to check if left bit is 1
+        return checkValue;
+    }
+}
+
+// V
+bool overflow(uint32_t val1, uint32_t val2, string operation){
+    if(operation == "ADDS"){
+        uint32_t result = val1 + val2 + 4294967295; // 4294967295 is 0xFFFFFFFF, max of uint32_t
+        return (result < 4294967295);
     }
     if(operation == "SUBS"){
-        return val2 > val1;
+        uint32_t result = val1 - val2;
+        return (result > val2);
+
+        // uint32_t a = 100;
+        // uint32_t b = 200;
+        // uint32_t result = a - b;
+        // bool borrow = (result > a);
+
+        // return (val2 < 0) && (val1 > 4294967295 + val2);
     }
+    // return (val2 >= 0) && (val1 > 4294967295 - val1);
+    // if(val2 > 4294967295 - val1){ // 4294967295 is maximum value
+    //     return true;
+    // }
+    // return false;
 }

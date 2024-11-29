@@ -26,11 +26,14 @@ int main(){
             for(int i = 0; i < operation.length(); i++){
                 operation[i] = toupper(operation[i]);
             }
-            getline(fin, junk, ' ');
-            getline(fin, destination, ',');
+            // getline(fin, junk, ' ');
+            // getline(fin, destination, ',');
 
             // MOV operations
             if(operation == "MOV"){
+                getline(fin, junk, ' ');
+                getline(fin, destination, ',');
+
                 getline(fin, junk, '#'); // remove # from MOV operation
                 getline(fin, operand1, '\r');
                 setRegisterArray(destination, convert(operand1), generalRegisters);
@@ -39,7 +42,10 @@ int main(){
 
             // Operations with two hex numbers
             if(operation == "ADD" || operation == "ADDS" || operation == "AND" || operation == "ANDS" || operation == "ORR" || operation == "ORRS" || operation == "SUB" || operation == "SUBS" || operation == "XOR" || operation == "XORS"){
-                getline(fin, junk, ' '); // remove space from operand2                
+                getline(fin, junk, ' ');
+                getline(fin, destination, ',');                
+                
+                getline(fin, junk, ' '); // remove space from operand1
                 getline(fin, operand1, ',');
                 getline(fin, junk, ' '); // remove space from operand2
                 getline(fin, operand2, '\r');
@@ -56,7 +62,7 @@ int main(){
                         N = negative(result);
                         Z = zero(result);
                         C = carry(value1, value2, operation);
-                        V = overflow(value1, value2);
+                        V = overflow(value1, value2, operation);
                     }
                 }
 
@@ -64,32 +70,34 @@ int main(){
                     setRegisterArray(destination, value1 & value2, generalRegisters);
                     uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "ANDS"){
-                        // N = negative(registerM); // will redo how overflow is calculated
-                        // Z = zero(registerM);
+                        N = negative(result);
+                        Z = zero(result);
                     }
                 }
                 if(operation == "ORR" || operation == "ORRS"){
                     setRegisterArray(destination, value1 | value2, generalRegisters);
                     uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "ORRS"){
-                        // N = negative(registerM); // will redo how overflow is calculated
-                        // Z = zero(registerM);
+                        N = negative(result);
+                        Z = zero(result);
                     }
                 }
                 if(operation == "SUB" || operation == "SUBS"){
                     setRegisterArray(destination, value1 - value2, generalRegisters);
                     uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "SUBS"){
-                        // N = negative(registerM); // will redo how overflow is calculated
-                        // Z = zero(registerM);
+                        N = negative(result);
+                        Z = zero(result);
+                        C = carry(value1, value2, operation);
+                        V = overflow(value1, value2, operation);
                     }
                 }
                 if(operation == "XOR" || operation == "XORS"){
                     setRegisterArray(destination, value1 ^ value2, generalRegisters);
                     uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "XORS"){
-                        // N = negative(registerM); // will redo how overflow is calculated
-                        // Z = zero(registerM);
+                        N = negative(result);
+                        Z = zero(result);
                     }
                 }                
                 cout << operation << " " << destination << ", " << operand1 << ", " << operand2 << endl;
@@ -98,7 +106,10 @@ int main(){
             // Operation with single hex number
             // ASR -> Arithemetic Shift Right, LSR -> Logical Shift Right, LSL -> Logical Shift Left
             if(operation == "ASR" || operation == "ASRS" || operation == "LSR" || operation == "LSRS" || operation == "LSL" || operation == "LSLS"){
-                getline(fin, junk, ' '); // remove space from operand2                
+                getline(fin, junk, ' ');
+                getline(fin, destination, ',');
+
+                getline(fin, junk, ' '); // remove space from operand1
                 getline(fin, operand1, ',');
                 getline(fin, junk, ' '); // remove space from operand2
                 getline(fin, operand2, '\r');
@@ -109,8 +120,11 @@ int main(){
                 if(operation == "ASR" || operation == "ASRS"){
                     int32_t value1; // int32_t for ASR only
                     setRegisterArray(destination, value1 >> shiftValue, generalRegisters);
+                    uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "ASRS"){
-                        // set flags
+                        N = negative(result);
+                        Z = zero(result);
+                        C = carryShift(value1, shiftValue, operation);
                     }
                 }
 
@@ -118,14 +132,20 @@ int main(){
                 uint32_t value1 = getRegisterValue(operand1, generalRegisters);
                 if(operation == "LSR" || operation == "LSRS"){
                     setRegisterArray(destination, value1 >> shiftValue, generalRegisters);
+                    uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "LSRS"){
-                        // set flags
+                        N = negative(result);
+                        Z = zero(result);
+                        C = carryShift(value1, shiftValue, operation);
                     }
                 }
                 if(operation == "LSL" || operation == "LSLS"){
                     setRegisterArray(destination, value1 << shiftValue, generalRegisters);
+                    uint32_t result = getRegisterValue(destination, generalRegisters);
                     if(operation == "LSLS"){
-                        // set flags
+                        N = negative(result);
+                        Z = zero(result);
+                        C = carryShift(value1, shiftValue, operation);
                     }
                 }
                 cout << operation << " " << destination << ", " << operand1 << ", " << operand2 << endl;
@@ -147,8 +167,32 @@ int main(){
             //     cout << "N: " << N << " Z: " << Z << endl;
             // }
 
-            if(operation == "CMP" || "TST"){
+            if(operation == "CMP" || operation == "TST"){
+                // NO DESTINATION REGISTERS
+                
+                getline(fin, junk, ' '); // remove space from operand1
+                getline(fin, operand1, ',');
+                getline(fin, junk, ' '); // remove space from operand2
+                getline(fin, operand2, ' ');
+                getline(fin, junk, '\r'); // remove <this is for extra credit> line
 
+                uint32_t value1 = getRegisterValue(operand1, generalRegisters);
+                uint32_t value2 = getRegisterValue(operand2, generalRegisters);
+
+                if(operation == "CMP"){
+                    uint32_t result = value2 - value1;
+                    N = negative(result);
+                    Z = zero(result);
+                    C = carry(value1, value2, operation);
+                    V = overflow(value1, value2, operation);
+                }
+                if(operation == "TST"){
+                    uint32_t result = value1 & value2;
+                    N = negative(result);
+                    Z = zero(result);
+
+                }
+                cout << operation << " " << operand1 << ", " << operand2 << endl;
             }
             displayRegisters(generalRegisters);
             cout << "N: " << N << " Z: " << Z << " C: "<< C << " V: " << V << endl;

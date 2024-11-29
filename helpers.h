@@ -13,12 +13,12 @@ void setRegisterArray(string destination, uint32_t setValue, Register<uint32_t>*
 uint32_t getRegisterValue(string destination, Register<uint32_t>* arrayRegisters);
 void displayRegisters(Register<uint32_t>* arrayRegisters);
 
-// new overflow function (unused)
-bool overflow(uint32_t reg1, uint32_t reg2);
-bool carry(uint32_t reg1, uint32_t reg2, string operation);
-
 // create bool function for each flag (nzcv)
 bool negative(uint32_t);
 bool zero(uint32_t);
+bool carry(uint32_t reg1, uint32_t reg2, string operation);
+bool carryShift(uint32_t val1, int shiftNum, string operation);
+bool overflow(uint32_t reg1, uint32_t reg2, string operation);
+
 
 #endif
