@@ -14,7 +14,6 @@ int main(){
     // open file stream
     ifstream fin(READFILE);
     if(fin.is_open() == true){
-        Register<uint32_t> destinationRegister, registerN, registerM;
         Register <uint32_t> generalRegisters[8];
         string operation, destination, operand1, operand2; // OPCODE, Rd, Rn, Rm
         bool N, Z, C, V; // n - negative, z - zero, c - carry, v - overflow

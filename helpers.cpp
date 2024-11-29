@@ -80,12 +80,6 @@ uint32_t getRegisterValue(string stringDestination, Register<uint32_t>* arrayReg
 
 // N
 bool negative(uint32_t checkValue){
-    // shift RIGHT 31 times to get remaining bit, and check if 1
-    // if((checkValue >> 31) == 1){
-    //     return true;
-    // }else{
-    //     return false;
-    // }
     return checkValue >> 31;
 }
 
@@ -139,17 +133,4 @@ bool overflow(uint32_t val1, uint32_t val2, string operation){
     if(operation == "SUBS"){
         uint32_t result = val1 - val2;
         return (result > val2);
-
-        // uint32_t a = 100;
-        // uint32_t b = 200;
-        // uint32_t result = a - b;
-        // bool borrow = (result > a);
-
-        // return (val2 < 0) && (val1 > 4294967295 + val2);
-    }
-    // return (val2 >= 0) && (val1 > 4294967295 - val1);
-    // if(val2 > 4294967295 - val1){ // 4294967295 is maximum value
-    //     return true;
-    // }
-    // return false;
 }
